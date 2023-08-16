@@ -1,5 +1,7 @@
 # Donkey Kong Land 2 (GB) Practice ROM
 
+![screenshot](https://github.com/lightbulb-sun/dkl2-practice/raw/main/gfx/screenshot00.png)
+
 This patch adds the following features to the
 Game Boy game *Donkey Kong Land 2*:
 * Select world, level and character(s) from title screen
