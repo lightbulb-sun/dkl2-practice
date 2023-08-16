@@ -15,8 +15,9 @@ TURN_ON_LCD                 equ     $3982
 READ_JOYPAD_BUTTONS         equ     $3839
 HELD_BUTTONS                equ     $dea1
 NEW_BUTTONS                 equ     $dea2
-CUR_LEVEL                   equ     $ffaf
-CUR_LEVEL_ID                equ     $ffa6
+CUR_WORLD                   equ     $ffae
+CUR_LOCAL_LEVEL_ID          equ     $ffaf
+CUR_GLOBAL_LEVEL_ID         equ     $ffa6
 LCDC                        equ     $ff40
 NR52                        equ     $ff26
 OAM_BUFFER                  equ     $c000
@@ -33,7 +34,7 @@ BIT_SPRITE_ENABLE           equ     1
 BIT_8x16_SPRITES            equ     2
 WAIT_FOR_LINE               equ     $35c2
 LINE_VBLANK                 equ     $90
-FREE_WRAM                   equ     $c5b0
+FREE_WRAM                   equ     $ddf0
 WORLD_VRAM                  equ     $9800
 LEVEL_VRAM                  equ     $9820
 LEVEL_COLUMN_VRAM           equ     $98a8
@@ -97,7 +98,7 @@ CURSOR_CHAR_TOP             equ     CURSOR_TOP
 FIRST_BOOT_MAGIC            equ     $ab
 
 
-SECTION "variables", WRAM0[FREE_WRAM]
+SECTION "variables", WRAMX[FREE_WRAM], BANK[1]
 first_boot:                 db
 frame:                      db
 lag_frames:                 db
@@ -131,8 +132,10 @@ SECTION "menu_loader", ROM0[$0186]
             ld      [SELECT_ROM_BANK], a
             jp      menu
 
-SECTION "suppress_overworld", ROMX[$6ff6], BANK[2]
-            ret
+SECTION "suppress_overworld", ROMX[$70b3], BANK[2]
+            jp      $7168
+SECTION "jump_over_overworld", ROMX[$7178], BANK[2]
+            jr      $7199
 
 SECTION "do_not_decrement_lives", ROM0[$037c]
             nop
@@ -564,21 +567,25 @@ set_level_id::
             add     hl, bc
 
             ld      a, [hl]
+            ldh     [CUR_LOCAL_LEVEL_ID], a
 
-            ld      b, 0
-            bit     6, a
-            jr      z, .cont
-            res     6, a
-            ld      b, 1
+            ld      a, [selected_world]
+            inc     a
+            cp      6
+            jr      c, .cont
+            jr      z, .turn_into_world7
+.turn_into_world6
+            dec     a
+            jr      .cont
+.turn_into_world7
+            inc     a
 .cont
-            ldh     [CUR_LEVEL_ID], a
-            ld      a, b
-            ldh     [$ffdf], a
+            ldh     [CUR_WORLD], a
             ret
 
 set_barrel_status::
 .check_star_barrel_flag
-            ldh     a, [CUR_LEVEL_ID]
+            ldh     a, [CUR_GLOBAL_LEVEL_ID]
             ld      b, a
             ld      a, [star_barrel_flag]
             and     a
@@ -589,12 +596,13 @@ set_barrel_status::
 .star_barrel
             ld      a, b
 .cont
-            ldh     [CUR_LEVEL_ID+1], a
+            ldh     [CUR_GLOBAL_LEVEL_ID+1], a
             ret
 
 start_level::
-            xor     a
-            ldh     [LCDC], a
+            call    wait_for_vblank
+            ld      hl, LCDC
+            res     7, [hl]
 
             call    set_characters
             call    set_level_id
@@ -605,7 +613,8 @@ IF FRAMECOUNTER == 1
             ld      [frame], a
 ENDC
             pop     hl
-            jp      $01a1
+
+            jp      $0199
 
 IF FRAMECOUNTER == 1
 copy_alnum::
@@ -794,19 +803,19 @@ level_id_table::
             dw      level_ids_world4, level_ids_world5, level_ids_world6
             dw      level_ids_world7
 level_ids_world1::
-            db      $03, $00, $04, $24, $01, $67
+            db      $00, $01, $02, $04, $05, $07
 level_ids_world2::
-            db      $18, $09, $25, $19, $0a, $1b, $26, $1c, $05, $02, $68
+            db      $00, $01, $02, $04, $05, $07, $08, $09, $0a, $0b, $0c
 level_ids_world3::
-            db      $21, $15, $0f, $16, $10, $1d, $22, $69
+            db      $00, $02, $03, $04, $05, $07, $08, $09
 level_ids_world4::
-            db      $0c, $17, $0d, $23, $0e, $6a
+            db      $00, $01, $02, $04, $06, $07
 level_ids_world5::
-            db      $06, $0b, $1e, $07, $1f, $20, $6b
+            db      $00, $01, $03, $04, $05, $07, $08
 level_ids_world6::
-            db      $11, $6d
+            db      $00, $03
 level_ids_world7::
-            db      $12, $08, $1a, $13, $14, $6c
+            db      $01, $03, $04, $05, $06, $07
 
 own_graphics::
 version_gfx::
