@@ -144,6 +144,10 @@ SECTION "suppress_altering_of_both_characters_flag", ROM0[$01ec]
             nop
             nop
 
+SECTION "change_star_barrel_flag_detection", ROM0[$0229]
+            ld      a, [star_barrel_flag]
+            and     a
+
 
 
 IF FRAMECOUNTER == 1
@@ -217,9 +221,10 @@ init_variables::
             ld      [selected_level], a
             ld      [selected_char], a
             ld      [active_cursor], a
-            ld      [star_barrel_flag], a
             ld      a, NUM_LIVES
             ldh     [CUR_NUM_LIVES], a
+            ld      a, 1
+            ld      [star_barrel_flag], a
 
             ld      a, CURSOR_WORLD_LEFT
             ld      [cursor_world_x], a
@@ -583,22 +588,6 @@ set_level_id::
             ldh     [CUR_WORLD], a
             ret
 
-set_barrel_status::
-.check_star_barrel_flag
-            ldh     a, [CUR_GLOBAL_LEVEL_ID]
-            ld      b, a
-            ld      a, [star_barrel_flag]
-            and     a
-            jr      nz, .star_barrel
-.no_star_barrel
-            ld      a, $ff
-            jr      .cont
-.star_barrel
-            ld      a, b
-.cont
-            ldh     [CUR_GLOBAL_LEVEL_ID+1], a
-            ret
-
 start_level::
             call    wait_for_vblank
             ld      hl, LCDC
@@ -606,7 +595,6 @@ start_level::
 
             call    set_characters
             call    set_level_id
-            call    set_barrel_status
 IF FRAMECOUNTER == 1
             call    copy_alnum
             xor     a
@@ -773,21 +761,21 @@ print_star_barrel_status::
             ld      hl, STAR_BARREL_VRAM
             ld      a, [star_barrel_flag]
             and     a
-            jr      z, .no
-.yes
-            ld      a, TILE_A+"Y"-"A"
-            ld      [hl+], a
-            ld      a, TILE_A+"E"-"A"
-            ld      [hl+], a
-            ld      a, TILE_A+"S"-"A"
-            ld      [hl+], a
-            ret
+            jr      z, .yes
 .no
             ld      a, TILE_A+"N"-"A"
             ld      [hl+], a
             ld      a, TILE_A+"O"-"A"
             ld      [hl+], a
             ld      a, TILE_SPACE
+            ld      [hl+], a
+            ret
+.yes
+            ld      a, TILE_A+"Y"-"A"
+            ld      [hl+], a
+            ld      a, TILE_A+"E"-"A"
+            ld      [hl+], a
+            ld      a, TILE_A+"S"-"A"
             ld      [hl+], a
             ret
 
