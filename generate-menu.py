@@ -149,7 +149,8 @@ def generate_strings():
         pointers = '    dw ' + ', '.join(f'level_string_{n}x{m}' for m, _ in enumerate(world, 1))
         result.append(pointers)
         for m, level in enumerate(world, 1):
-            level_text = f'{m}:{level}'
+            x = m if m < len(world) else 'B'
+            level_text = f'{x}:{level}'
             assert(len(level_text) <= COLS)
             result.append(f'level_string_{n}x{m}::')
             result.append(f'    {chars_to_asm(level_text)}')
