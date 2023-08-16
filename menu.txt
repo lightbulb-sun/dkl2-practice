@@ -1,12 +1,12 @@
 
 
 
- WORLD  LEVEL  CHAR
+ W  L  CHARACTER
 --------------------
- 1             DIDDY
- 2             DIXIE
- 3             BOTH
- 4
+ 1     DIXIE
+ 2     DIDDY
+ 3     DIXIE/DIDDY
+ 4     DIDDY/DIXIE
  5
  6
  7

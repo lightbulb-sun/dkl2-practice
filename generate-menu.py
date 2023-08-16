@@ -11,6 +11,7 @@ TILE_SPACE = 0x00
 TILE_PERIOD = 0xc9
 TILE_APOSTROPHE = 0xc7
 TILE_COLON = 0xcb
+TILE_SLASH = 0xc4
 
 COLS = 20
 ROWS = 18
@@ -107,6 +108,8 @@ def char_to_tile(char):
         return TILE_APOSTROPHE
     if char == ":":
         return TILE_COLON
+    if char == "/":
+        return TILE_SLASH
     raise Exception(f'Unknown character: {char}')
 
 

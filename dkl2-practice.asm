@@ -37,11 +37,11 @@ LINE_VBLANK                 equ     $90
 FREE_WRAM                   equ     $ddf0
 WORLD_VRAM                  equ     $9800
 LEVEL_VRAM                  equ     $9820
-LEVEL_COLUMN_VRAM           equ     $98a8
+LEVEL_COLUMN_VRAM           equ     $98a4
 LEVEL_COLUMN_MAX_LENGTH     equ     11
 STAR_BARREL_VRAM            equ     $9a2f
 NUM_WORLDS                  equ     7
-NUM_CHARS                   equ     3
+NUM_CHARS                   equ     4
 NUM_COLUMNS                 equ     3
 CUR_NUM_LIVES               equ     $ffaa
 NUM_LIVES                   equ     16
@@ -90,9 +90,9 @@ BIT_BUTTON_DOWN             equ     7
 CURSOR_TOP                  equ     8*7
 CURSOR_WORLD_LEFT           equ     8
 CURSOR_WORLD_TOP            equ     CURSOR_TOP
-CURSOR_LEVEL_LEFT           equ     8*8
+CURSOR_LEVEL_LEFT           equ     8*4
 CURSOR_LEVEL_TOP            equ     CURSOR_TOP
-CURSOR_CHAR_LEFT            equ     8*15
+CURSOR_CHAR_LEFT            equ     8*7
 CURSOR_CHAR_TOP             equ     CURSOR_TOP
 
 FIRST_BOOT_MAGIC            equ     $ab
@@ -542,18 +542,32 @@ handle_left_press::
 set_characters::
             ld      a, [selected_char]
             and     a
+            jr      z, .dixie
+            dec     a
             jr      z, .diddy
             dec     a
-            jr      z, .dixie
-.both
-            ld      a, 1
+            jr      z, .dixie_diddy
+.diddy_dixie
+            xor     a
+            ldh     [CHAR_DIXIE_FLAG], a
+            inc     a
             ldh     [CHAR_BOTH_FLAG], a
             ret
-.diddy
-            ret
 .dixie
+            xor     a
+            ldh     [CHAR_BOTH_FLAG], a
+            inc     a
+            ldh     [CHAR_DIXIE_FLAG], a
+            ret
+.diddy
+            xor     a
+            ldh     [CHAR_DIXIE_FLAG], a
+            ldh     [CHAR_BOTH_FLAG], a
+            ret
+.dixie_diddy
             ld      a, 1
             ldh     [CHAR_DIXIE_FLAG], a
+            ldh     [CHAR_BOTH_FLAG], a
             ret
 
 set_level_id::
