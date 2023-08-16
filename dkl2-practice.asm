@@ -730,6 +730,7 @@ print_level_column::
             call    overwrite_memory_column
 .print_current
             ld      a, [cur_num_levels]
+            dec     a
             ld      b, a
             ld      a, 1
             ld      hl, LEVEL_COLUMN_VRAM
@@ -755,6 +756,9 @@ print_level_column::
             inc     a
             dec     b
             jr      nz, .loop
+.boss
+            ld      a, TILE_A + "B" - "A"
+            ld      [hl], a
             ret
 
 print_star_barrel_status::
